@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Player</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="player"></div>
+
+  <script>
+    (function () {
+      const mount = document.getElementById('player');
+
+      // Supports /player/1078605 and ?id=1078605
+      const parts = location.pathname.split('/').filter(Boolean);
+      const pathId = parts[0] === 'player' ? parts[1] : '';
+      const queryId = new URLSearchParams(location.search).get('id');
+      const tmdbId = (pathId || queryId || '').trim();
+
+      if (!/^\d+$/.test(tmdbId)) {
+        mount.innerHTML =
+          '<div style="height:100%;display:grid;place-items:center;color:#aaa;font:14px Arial">' +
+          'Invalid TMDB ID' +
+          '</div>';
+        return;
+      }
+
+      const iframe = document.createElement('iframe');
+      iframe.src = 'https://cinemaos.tech/player/' + encodeURIComponent(tmdbId);
+      iframe.allowFullscreen = true;
+      iframe.setAttribute('allow',
+        'autoplay; fullscreen; picture-in-picture; encrypted-media');
+      iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+      iframe.title = 'Video Player';
+
+      mount.appendChild(iframe);
+
+      // Best-effort popup protection for the parent page.
+      window.open = function () { return null; };
+      document.addEventListener('click', function (e) {
+        const a = e.target.closest && e.target.closest('a[target="_blank"]');
+        if (a) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+    })();
+  </script>
+</body>
+</html>
